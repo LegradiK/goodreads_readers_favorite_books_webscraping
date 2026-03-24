@@ -19,6 +19,7 @@ function applyFilters() {
   if (year)  books = books.filter(b => String(b.year) === year);
 
   if (sortBy === 'votes')  books.sort((a, b) => parseInt(b.votes) - parseInt(a.votes));
+  if (sortBy === 'rating')  books.sort((a, b) => parseInt(b.rating) - parseInt(a.rating));
   if (sortBy === 'title')  books.sort((a, b) => a.title.localeCompare(b.title));
   if (sortBy === 'author') books.sort((a, b) => a.author.localeCompare(b.author));
 
@@ -37,6 +38,7 @@ function applyFilters() {
         <a href="${b.book_url}" target="_blank" rel="noopener noreferrer">${b.title}</a>
       </td>
       <td class="author-col">${b.author}</td>
+      <td class="rating-col">${b.rating}</td>
       <td><span class="genre-pill">${b.genre}</span></td>
       <td class="year-col">${b.year}</td>
       <td class="votes-col">${fmt(b.votes)}</td>
@@ -70,6 +72,7 @@ function render() {
   }
 
   if (sort === 'votes')  books.sort((a, b) => parseInt(b.votes) - parseInt(a.votes));
+  if (sort === 'rating')  books.sort((a, b) => parseInt(b.rating) - parseInt(a.rating));
   if (sort === 'title')  books.sort((a, b) => a.title.localeCompare(b.title));
   if (sort === 'author') books.sort((a, b) => a.author.localeCompare(b.author));
   if (sort === 'rank')   books.sort((a, b) => a.rank - b.rank);

@@ -3,23 +3,21 @@ import json
 import os
 from flask import Flask, render_template
 from bs4 import BeautifulSoup
-import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# data is only available from 2011 - 2025
+# CONFIG
 BASE_URL = "https://www.goodreads.com/"
-# ~2023, webpage addresses were like e.g.'best-fiction-books-2023'
-# 2024 ~, the addresses are now like e.g.'readers-favorite-fiction-books-2024'
 PREFIX = ["choiceawards/best", "choiceawards/readers-favorite"]
-# after genre slugs, the year needs to be inserted e.g.2025
+
 GENRES = {
-    "Fiction":"fiction-books",
-    "Historical Fiction":"historical-fiction-books",
-    "Mystery / Thriller":"mystery-thriller-books",
-    "Fantasy":"fantasy-books",
-    "Science Fiction":"science-fiction-books"
+    "Fiction": "fiction-books",
+    "Historical Fiction": "historical-fiction-books",
+    "Mystery / Thriller": "mystery-thriller-books",
+    "Fantasy": "fantasy-books",
+    "Science Fiction": "science-fiction-books"
 }
-YEARS = [2011, 2012, 2013, 2014, 2015, 2016, 2017, 
-         2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+
+YEARS = list(range(2011, 2026))
 
 HEADERS = {
     "User-Agent": (
@@ -33,81 +31,129 @@ DATA_FILE = "books.json"
 
 app = Flask(__name__)
 
+# --------------------------
+# FETCH RATING (PARALLEL)
+# --------------------------
+def fetch_rating(session, book_url):
+    try:
+        r = session.get(book_url, timeout=10)
+        soup = BeautifulSoup(r.text, "html.parser")
+
+        div = soup.select_one("div.RatingStatistics__rating")
+        if div:
+            return book_url, div.text.strip()
+
+        return book_url, None
+    except:
+        return book_url, None
+
+
+# --------------------------
+# MAIN SCRAPER
+# --------------------------
 def scrape_all_genres():
+    session = requests.Session()
+    session.headers.update(HEADERS)
+
     books = []
-    # go through the data by year from 2011 - 2025
+
+    # -------- Phase 1: Collect metadata --------
     for year in YEARS:
-        if year < 2024:
-            prefix = PREFIX[0]
-        else:
-            prefix = PREFIX[1]
+        prefix = PREFIX[0] if year < 2024 else PREFIX[1]
 
         for genre, genre_url in GENRES.items():
             full_url = f"{BASE_URL}{prefix}-{genre_url}-{year}"
-            response = requests.get(full_url, headers=HEADERS)
 
+            response = session.get(full_url)
             if response.status_code != 200:
                 print(f"Failed ({response.status_code}): {full_url}")
                 continue
 
             soup = BeautifulSoup(response.text, "html.parser")
 
-            # each book block: <strong>votes</strong> sits directly before <a><img></a>
-            # find all <strong> tags whose text contains "votes"
             vote_blocks = soup.find_all("strong", string=lambda s: s and "votes" in s)
 
             for rank, block in enumerate(vote_blocks, start=1):
-                # votes text looks like "167,509\nvotes" — clean it up
-                votes = block.get_text(strip=True).replace("votes", "").replace(",", "").strip()
+                votes = (
+                    block.get_text(strip=True)
+                    .replace("votes", "")
+                    .replace(",", "")
+                    .strip()
+                )
 
-                # the <img> is inside the next <a> sibling after the <strong>
                 next_a = block.find_next("a")
+                if not next_a:
+                    continue
 
-                url = next_a["href"]
-                
-
-                img = next_a.find("img") if next_a else None
+                book_url = BASE_URL + next_a["href"]
+                img = next_a.find("img")
 
                 if not img or " by " not in img.get("alt", ""):
                     continue
 
-                alt    = img["alt"]
-                parts  = alt.split(" by ", 1)
-                title  = parts[0].strip()
-                author = parts[1].strip()
+                title, author = img["alt"].split(" by ", 1)
 
                 books.append({
-                    "rank":   rank,
-                    "votes":  votes,
-                    "genre":  genre,
+                    "rank": rank,
+                    "votes": votes,
+                    "genre": genre,
                     "year": year,
-                    "title":  title,
-                    "author": author,
-                    "book_url":  BASE_URL+url
+                    "title": title.strip(),
+                    "author": author.strip(),
+                    "rating": None,  # placeholder
+                    "book_url": book_url
                 })
-            # print(f"Scraped {len(books)} books from {genre}")
-        time.sleep(1)
-        print(f"Scraped {len(books)} books from {year}")
+
+        print(f"Collected metadata for year {year}")
+
+    print(f"Total books collected: {len(books)}")
+
+    # -------- Phase 2: Fetch ratings in parallel --------
+    book_map = {book["book_url"]: book for book in books}
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [
+            executor.submit(fetch_rating, session, book["book_url"])
+            for book in books
+        ]
+
+        for future in as_completed(futures):
+            url, rating = future.result()
+            book_map[url]["rating"] = rating
+
+    print("Finished fetching ratings")
+
     return books
 
+
+# --------------------------
+# LOAD OR SCRAPE
+# --------------------------
 def load_or_scrape():
     if os.path.exists(DATA_FILE):
-        print("Loading from the file")
-        with open(DATA_FILE) as file:
-            return json.load(file)
+        print("Loading from file")
+        with open(DATA_FILE) as f:
+            return json.load(f)
+
     data = scrape_all_genres()
-    with open(DATA_FILE, "w") as file:
-        json.dump(data, file)
-    print(f"Saved {len(data)} books to {DATA_FILE}")
+
+    with open(DATA_FILE, "w") as f:
+        json.dump(data, f, indent=2)
+
+    print(f"Saved {len(data)} books")
     return data
+
 
 BOOK_DATA = load_or_scrape()
 
 
-
+# --------------------------
+# FLASK ROUTE
+# --------------------------
 @app.route("/")
 def home():
     return render_template("home.html", data=BOOK_DATA)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
