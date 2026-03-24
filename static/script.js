@@ -19,7 +19,7 @@ function applyFilters() {
   if (year)  books = books.filter(b => String(b.year) === year);
 
   if (sortBy === 'votes')  books.sort((a, b) => parseInt(b.votes) - parseInt(a.votes));
-  if (sortBy === 'rating')  books.sort((a, b) => parseInt(b.rating) - parseInt(a.rating));
+  if (sortBy === 'rating')  books.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
   if (sortBy === 'title')  books.sort((a, b) => a.title.localeCompare(b.title));
   if (sortBy === 'author') books.sort((a, b) => a.author.localeCompare(b.author));
 
