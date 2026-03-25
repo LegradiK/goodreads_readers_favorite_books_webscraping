@@ -13,6 +13,7 @@ function applyFilters() {
   const genre  = document.getElementById('filter-genre').value;
   const year   = document.getElementById('filter-year').value;
   const sortBy = document.getElementById('sort-by').value;
+  const show   = document.getElementById('filter-show').value;
 
   let books = [...window.BOOKS];
   if (genre) books = books.filter(b => b.genre === genre);
@@ -22,6 +23,8 @@ function applyFilters() {
   if (sortBy === 'rating')  books.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
   if (sortBy === 'title')  books.sort((a, b) => a.title.localeCompare(b.title));
   if (sortBy === 'author') books.sort((a, b) => a.author.localeCompare(b.author));
+
+  if (show !== "all") books = books.slice(0, parseInt(show));
 
   document.getElementById('results-count').textContent = `Result # ${books.length}`;
 
@@ -72,7 +75,7 @@ function render() {
   }
 
   if (sort === 'votes')  books.sort((a, b) => parseInt(b.votes) - parseInt(a.votes));
-  if (sort === 'rating')  books.sort((a, b) => parseInt(b.rating) - parseInt(a.rating));
+  if (sort === 'rating')  books.sort((a, b) => parseFloat(b.rating) - parseFloat(a.rating));
   if (sort === 'title')  books.sort((a, b) => a.title.localeCompare(b.title));
   if (sort === 'author') books.sort((a, b) => a.author.localeCompare(b.author));
   if (sort === 'rank')   books.sort((a, b) => a.rank - b.rank);

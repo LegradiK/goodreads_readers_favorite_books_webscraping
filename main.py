@@ -1,7 +1,7 @@
 import requests
 import json
 import os
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from bs4 import BeautifulSoup
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -152,7 +152,18 @@ BOOK_DATA = load_or_scrape()
 # --------------------------
 @app.route("/")
 def home():
-    return render_template("home.html", data=BOOK_DATA)
+    limit_param = request.args.get("limit", "all")
+    
+    if limit_param == "all":
+        display_data = BOOK_DATA
+        limit = "all"
+    elif limit_param.isdigit() and int(limit_param) in [10, 20, 30, 50, 100]:
+        limit = int(limit_param)
+        display_data = BOOK_DATA[:limit]
+    else:
+        display_data = BOOK_DATA
+        limit = "all"
+    return render_template("home.html", data=display_data, limit=limit)
 
 
 if __name__ == "__main__":

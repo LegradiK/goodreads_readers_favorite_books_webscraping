@@ -31,6 +31,15 @@
       <option value="title">Title A–Z</option>
       <option value="author">Author A–Z</option>
     </select>
+
+    <label>Show</label>
+    <select id="filter-show" onchange="applyFilters()">
+      {% for n in ["all", 10, 20, 30, 50, 100] %}
+          <option value="{{ n }}" {% if n == limit %}selected{% endif %}>
+              {{ n | capitalize }}
+          </option>
+      {% endfor %}
+    </select>
   </div>
   
   <p class="results-count" id="results-count"></p>
