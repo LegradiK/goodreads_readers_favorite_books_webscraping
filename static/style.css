@@ -8,7 +8,6 @@
   --steam:     #8C7560;
   --border:    #EAD9C0;
   --hover:     #EDD9B0;
-  --winner-bg: #FDF6E8;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -121,6 +120,18 @@ select:focus {
   border: 1px solid var(--latte);
   background: var(--foam);
   color: var(--roast);
+}
+
+.export-csv {
+  background-color: var(--caramel);
+  font-weight: 600;
+  color: var(--foam);
+  padding: 6px 16px;
+  border-radius: 5rem;
+  border: 1px solid var(--caramel);
+  cursor: pointer;
+  margin-left: auto;
+  display: block;
 }
 
 /* ── Table ────────────────────────────────────── */
@@ -244,11 +255,6 @@ tbody td {
   box-shadow: 0 2px 12px rgba(92, 51, 23, 0.1);
 }
 
-.book-card.winner {
-  border-color: var(--caramel);
-  background: var(--winner-bg);
-}
-
 .rank {
   font-family: 'Lora', serif;
   font-size: 1.3rem;
@@ -259,7 +265,6 @@ tbody td {
   flex-shrink: 0;
 }
 
-.book-card.winner .rank { color: var(--caramel); }
 
 .book-info { flex: 1; min-width: 0; }
 
@@ -292,18 +297,6 @@ tbody td {
   font-size: 0.95rem;
   color: var(--espresso);
   font-weight: 500;
-}
-
-/* ── Winner badge ─────────────────────────────── */
-.winner-badge {
-  font-size: 0.65rem;
-  background: var(--caramel);
-  color: var(--foam);
-  padding: 0.15rem 0.5rem;
-  border-radius: 99px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-  flex-shrink: 0;
 }
 
 /* ── Empty ────────────────────────────────────── */

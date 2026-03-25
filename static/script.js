@@ -80,21 +80,35 @@ function render() {
   if (sort === 'author') books.sort((a, b) => a.author.localeCompare(b.author));
   if (sort === 'rank')   books.sort((a, b) => a.rank - b.rank);
 
-  const topVotes = Math.max(...books.map(b => parseInt(b.votes)));
-
   el.innerHTML = books.map(b => `
-    <div class="book-card ${parseInt(b.votes) === topVotes ? 'winner' : ''}">
       <div class="rank">${b.rank}</div>
       <div class="book-info">
         <div class="book-title">${b.title}</div>
         <div class="book-author">${b.author}</div>
       </div>
-      ${parseInt(b.votes) === topVotes ? '<span class="winner-badge">WINNER</span>' : ''}
       <div class="book-votes">
         <strong>${fmt(b.votes)}</strong> votes
       </div>
     </div>
   `).join('');
+}
+
+// ── Convert result json data to .cvs ────────────────────
+function exportCSV() {
+    const rows = [...document.querySelectorAll('#table-body tr')].map(tr => {
+        const cells = [...tr.querySelectorAll('td')].map(td => td.innerText.trim());
+        return cells;
+    });
+
+    if (!rows.length) return;
+
+    const headers = ["Rank", "Title", "Author", "Rating", "Genre", "Year", "Votes"];
+    const csv = [headers, ...rows].map(r => r.map(cell => `"${cell}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "books.csv";
+    a.click();
 }
 
 // ── Init ────────────────────────────────────────────────

@@ -10,6 +10,8 @@ A Flask web app that scrapes and displays Goodreads Readers Choice Award nominee
 - Fetches individual book ratings in parallel using `ThreadPoolExecutor`
 - Caches all data locally to `books.json` — scraper only runs once
 - Filter by genre and year, sort by rank, votes, title and author
+- Control how many results are displayed (10, 20, 30, 50, 100, or All)
+- Export currently visible results to a .csv file
 - Clickable book titles linking directly to the Goodreads page
 - Coffee-themed UI built with Flask and Jinja2
 
@@ -94,6 +96,19 @@ rm books.json
 python3 main.py
 ```
 
+---
+
+## Filtering & Display
+| Control | Options | Default |
+|---|---|---|
+| Genre | All Genres, Fiction, Historical Fiction, Mystery / Thriller, Fantasy, Science Fiction | All Genres |
+| Year | All Years, 2011–2025 | All Years |
+| Sort by | Votes, Rating, Title A–Z, Author A–Z | Votes |
+| Show | All, 10, 20, 30, 50, 100 | All |
+ 
+### Export to CSV
+The **Export as CSV** button downloads a `.csv` file of whatever is currently visible in the table — respecting any active filters, sort order, and show limit. The file can be opened directly in Excel or Google Sheets.
+ 
 ---
 
 ## Notes
