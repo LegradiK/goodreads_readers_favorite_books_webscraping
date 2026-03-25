@@ -1,4 +1,4 @@
-# Goodreads Choice Awards Browser
+# Goodreads Choice Awards Books Ranking
 
 A Flask web app that scrapes and displays Goodreads Readers Choice Award nominees across 5 genres from 2011 to 2025, complete with votes, ratings, and links back to each book's Goodreads page.
 
